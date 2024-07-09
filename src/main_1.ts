@@ -1,15 +1,31 @@
 // Second practice (exploring camera)
 import * as THREE from "three";
 // alys install gsap@3.5.1
-// import gsap from "gsap";
+import gsap from "gsap";
+
+const sizes = {
+  width: 800,
+  height: 600,
+};
+
+const cursor = {
+  x: 0,
+  y: 0,
+};
+
+/**
+ * @description getting coordintes of the cursor
+ */
+window.addEventListener("mousemove", (e: MouseEvent) => {
+  // console.log("x -> ", e.x, " y -> ", e.y);
+  // console.log("x -> ", e.clientX, " y -> ", e.clientY);
+  cursor.x = e.clientX / sizes.width - 0.5;
+  cursor.y = -(e.clientY / sizes.height - 0.5);
+});
 
 const canvas: HTMLCanvasElement | null = document.querySelector("canvas.webgl");
 
 if (canvas) {
-  const sizes = {
-    width: 800,
-    height: 600,
-  };
   // canvas.style.width = `${sizes.width}px`;
   // canvas.style.height = `${sizes.height}px`;
 
@@ -29,12 +45,52 @@ if (canvas) {
 
   scene.add(cube1);
 
-  const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height);
-  camera.position.set(-1, 1, 3);
+  // field of view is in degrees (vertical vision angle) (not horizontal)
+  // good values of fov are between 45 and 75
+  // second argument is aspect ratio
+  const camera = new THREE.PerspectiveCamera(
+    75,
+    sizes.width / sizes.height,
+    // play with near and far to see what effect will produce
+    0.1, // increase this it might cut the mesh camera is looking at
+    100
+  );
+  // camera good for 2D games
+  // ortographic camera
+  // we calculate aspect for this camera
+  /* const aspectRatio = sizes.width / sizes.height;
+  const camera = new THREE.OrthographicCamera(
+    // using aspect ratio like this will ensure we don't have
+    // elongated or squished scene
+    -1 * aspectRatio,
+    1 * aspectRatio,
+    1,
+    -1,
+    0.1,
+    100
+  ); */
+
+  // camera.position.set(-1, 2, 3);
+  camera.position.z = 3;
   scene.add(camera);
 
   camera.lookAt(cube1.position);
 
+  console.log("distance to look at vector -> ", camera.position.length());
+
+  // we can also animate fov
+  // messing with fow can make scene distorted, wich sometimes we want
+  // when we want to create cool effect
+
+  /* gsap.to(camera, {
+    fov: 25,
+    duration: 2,
+    delay: 2,
+    onUpdate: () => {
+      // we must do this if we want animation to happen
+      camera.updateProjectionMatrix();
+    },
+  }); */
   // distance between vector of mesh and the vector of camera
   // console.log(me.position.distanceTo(camera.position));
   //
@@ -65,26 +121,32 @@ if (canvas) {
     // You will have strange reuslts, whichh I noriced when trying to use it
     // especially when using with getElapsedTime
 
-    const elapsedTime = clock.getElapsedTime();
+    // const elapsedTime = clock.getElapsedTime();
 
-    cube1.rotation.y = elapsedTime;
+    // cube1.rotation.y = elapsedTime;
 
-    // console.log("tick", elapsedTime);
+    // cube1.position.x = cursor.x;
+    // cube1.position.y = -cursor.y;
 
-    // cube1.position.x = elapsedTime * 0.1;
-    // cube1.position.x = Math.sin(Math.PI * elapsedTime);
-    // cube2.rotation.y = 2 * Math.PI * elapsedTime;
+    // moving camera left right up down
+    // number 5 in here can be refered as amplitude (try incresing it)
+    // camera.position.x = cursor.x * 10;
+    // camera.position.y = cursor.y * 10;
+    // we are moving camera but we want to look at mesh
+    // camera.lookAt(cube1.position);
 
-    // making a circle while moving
-    // cube3.position.x = Math.sin(elapsedTime);
-    // cube3.position.z = Math.cos(elapsedTime);
-    //
+    // movig camera aroound mesh
+    camera.position.x = Math.sin(2 * Math.PI * cursor.x) * 2;
+    camera.position.z = Math.cos(2 * Math.PI * cursor.x) * 2;
+    // moving a little bit camera up down
+    camera.position.y = cursor.y * 3;
+    camera.lookAt(cube1.position);
 
-    // animating camera
-    // camera.position.x = Math.sin(elapsedTime);
-    // camera.position.y = Math.cos(elapsedTime);
-    // but we look at cube2 while moving
-    // camera.lookAt(cube2.position);
+    // But all above is bit complicted
+    // so ThreeJS offers built in controls
+
+    
+
 
     // never forget this at th end of the frame,
     // without this nothing would change

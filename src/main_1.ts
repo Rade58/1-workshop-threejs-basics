@@ -1,7 +1,8 @@
 // Second practice (exploring camera)
 import * as THREE from "three";
 // alys install gsap@3.5.1
-import gsap from "gsap";
+// import gsap from "gsap";
+import { OrbitControls } from "three/examples/jsm/Addons.js";
 
 const sizes = {
   width: 800,
@@ -100,6 +101,23 @@ if (canvas) {
   axHelp.setColors("red", "green", "blue");
   scene.add(axHelp);
 
+  const orbit_controls = new OrbitControls(camera, canvas);
+  // changing target of orbit controls
+  orbit_controls.target = cube1.position; // here you don't need to use update
+  // you can also change x y z on target sinci it is a Vector3
+  // but you need to use update method after
+
+  // orbit_controls.target.y = 2; // but let's not use this
+  // orbit_controls.update();
+
+  // damping is like acceleration or friction when you manipulate controls
+  // giving it more natural and smooth feel
+  orbit_controls.enableDamping = true;
+  // but in order for dumping to work
+  // you must update in every animation frame
+  // so put this in a frame:
+  // orbit_controls.update();
+
   // camera.position.x += -0.1;
   // camera.position.y += -0.1;
 
@@ -136,17 +154,17 @@ if (canvas) {
     // camera.lookAt(cube1.position);
 
     // movig camera aroound mesh
-    camera.position.x = Math.sin(2 * Math.PI * cursor.x) * 2;
+    /*  camera.position.x = Math.sin(2 * Math.PI * cursor.x) * 2;
     camera.position.z = Math.cos(2 * Math.PI * cursor.x) * 2;
     // moving a little bit camera up down
     camera.position.y = cursor.y * 3;
     camera.lookAt(cube1.position);
+    */
 
-    // But all above is bit complicted
-    // so ThreeJS offers built in controls
+    // Commented out this above to use OrbitControls
 
-    
-
+    // for dumping to work
+    orbit_controls.update();
 
     // never forget this at th end of the frame,
     // without this nothing would change

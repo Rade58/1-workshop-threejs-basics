@@ -1,4 +1,4 @@
-// Second practice (exploring camera)
+// Second practice (exploring camera and controls (built in controls and one we build))
 import * as THREE from "three";
 // alys install gsap@3.5.1
 // import gsap from "gsap";

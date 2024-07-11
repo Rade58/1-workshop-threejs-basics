@@ -4,6 +4,7 @@ import * as THREE from "three";
 // alys install gsap@3.5.1
 import gsap from "gsap";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
+// https://lil-gui.georgealways.com/
 import GUI from "lil-gui";
 
 /**

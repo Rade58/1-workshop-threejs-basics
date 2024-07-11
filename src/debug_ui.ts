@@ -2,20 +2,29 @@
 // we are going to use package lil-gui
 import * as THREE from "three";
 // alys install gsap@3.5.1
-// import gsap from "gsap";
+import gsap from "gsap";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 import GUI from "lil-gui";
 
 /**
  * @description Debug UI - lil-ui
  */
-const gui = new GUI();
+const gui = new GUI({
+  width: 340,
+  title: "My Debugging",
+  closeFolders: false,
+});
+
+// gui.hide();
 
 // doing this because color problem
 // where I need to print color in order to get it
 const debugObject = {
   // color: "#8c5a72",
   color: "#90315f",
+  subdivisions: 1,
+  //
+  // spin: () => {},
 };
 
 const sizes = {
@@ -50,29 +59,50 @@ if (canvas) {
     // color: new THREE.Color("#d7a180"),
     // color: new THREE.Color("#f44d4d"),
     color: debugObject.color,
+    wireframe: true,
   });
 
   const cube1 = new THREE.Mesh(geo, mat);
+
+  // -----------------------------------------------------------------------
+  // -----------------------------------------------------------------------
+  // ------ We can use folder
+  const cubeTweaks = gui.addFolder("My Cube");
+  // close folder by default
+  // cubeTweaks.close();
+  // You can also nest folders (put folders inside the folders)
+
   // -----------------------------------------------------------------------
   // -----------------------------------------------------------------------
   // using debug ui
   // gui.add(cube1.position, "y", -3, 3, 0.01); // one way
   // better way with methods
-  gui.add(cube1.position, "y").min(-3).max(3).step(0.001).name("elevation");
+  cubeTweaks
+    // gui
+    .add(cube1.position, "y")
+    .min(-3)
+    .max(3)
+    .step(0.001)
+    .name("elevation");
   // we can also tweak non ThreeJS things, like objects for example
-  let myObject = {
+  /* let myObject = {
     speed: 0.4,
-  };
+  }; */
   // gui.add(myObject, "speed").min(0.0).max(0.9).step(0.01).name("speed");
 
   // this one is boolean
-  gui.add(cube1, "visible");
+
+  cubeTweaks
+    // gui
+    .add(cube1, "visible");
   // .name("visible");
 
   // for material
   // gui.add(mat, "wireframe");
   // or //
-  gui.add(cube1.material, "wireframe");
+  cubeTweaks
+    // gui
+    .add(cube1.material, "wireframe");
 
   // but we won't tweak color, we will tweak value outside of threejs
   // this approach is BAD (WE WON'T BE USING THIS EVER)
@@ -101,8 +131,9 @@ if (canvas) {
     .name("(don't use this)");
     */
 
-  // BETTER PPROACH WE RE GOING TO USE IN FUTURE DEVELOPMENT
-  gui
+  // BETTER APROACH WE RE GOING TO USE IN FUTURE DEVELOPMENT
+  cubeTweaks
+    // gui
     .addColor(debugObject, "color")
     .onChange((colHex: string) => {
       // like this
@@ -111,7 +142,49 @@ if (canvas) {
       mat.color.set(colHex);
     })
     .name("set color");
+  // ------------------------
+  // @ts-ignore spin
+  debugObject.spin = () => {
+    gsap.to(cube1.rotation, { y: cube1.rotation.y + Math.PI * 2 });
+  };
 
+  cubeTweaks
+    // gui
+    .add(debugObject, "spin");
+
+  // --------------- for changing characteristics of geometry
+  // can't be done directly since we only can define widthSegments, heightSegments, depthSegments
+  // when we instantiate geometry
+  cubeTweaks
+    // gui
+    .add(debugObject, "subdivisions")
+    .min(1)
+    .max(20)
+    .step(1)
+    // this is bad because it requires a lot of processing
+    // .onChange((subdiv: number) => {
+    // console.log({ subdiv });
+    // cube1.geometry = new THREE.BoxGeometry(1,1,subdiv, subdiv)
+    // });
+    // this method is better since it runs only when you relese the picker (slider)
+    // it is better but also bad for performance and it can cause memory leaks
+    // since old geometries will still be in memory
+    .onFinishChange((subdiv: number) => {
+      // console.log({ subdiv });
+      // first to dispose old geometry, to prevent memory leaks
+      cube1.geometry.dispose();
+      // I don't know why we don't use it like this
+      // cube1.geometry = new THREE.BoxGeometry(1, 1, subdiv, subdiv, subdiv);
+      // instead of this
+      cube1.geometry = new THREE.BoxGeometry(
+        1,
+        1,
+        1,
+        debugObject.subdivisions,
+        debugObject.subdivisions,
+        debugObject.subdivisions
+      );
+    });
   // -----------------------------------------------------------------------
   // -----------------------------------------------------------------------
 
@@ -150,7 +223,14 @@ if (canvas) {
 
   renderer.render(scene, camera);
 
-  // ------------- Animation ------------------
+  // toggle debug ui on key `h`
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "h") {
+      gui.show(gui._hidden);
+    }
+  });
+
+  // ------------- Animation loop ------------------
   const clock = new THREE.Clock();
   const tick = () => {
     // for dumping to work

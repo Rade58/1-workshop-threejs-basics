@@ -59,8 +59,8 @@ if (canvas) {
   );
   //
 
-  const matcapTexture = textureLoader.load("/textures/matcaps/3.png");
-  const gradientTexture1 = textureLoader.load("/textures/gradients/grad1.jpg");
+  const matcapTexture = textureLoader.load("/textures/matcaps/7.png");
+  const gradientTexture = textureLoader.load("/textures/gradients/grad2.jpg");
   // this hdr file can't be loaded like this
   // const environmentMapTexture = textureLoader.load(
   // "/textures/environmentMap/vignaioli_2k.hdr"
@@ -78,28 +78,116 @@ if (canvas) {
   const planeGeo = new THREE.PlaneGeometry(1, 1);
   const torusGeo = new THREE.TorusGeometry(0.3, 0.2, 16, 32);
 
-  //
+  // ------- MESH BASIC MATERIAL
   const meshBasicMat = new THREE.MeshBasicMaterial({
     // color: debugObject.color,
     // wireframe: true,
     // map: doorColorTexture,
   });
-  meshBasicMat.map = doorColorTexture;
+  // meshBasicMat.map = doorColorTexture;
   // meshBasicMat.color = new THREE.Color("crimson"); // needs to be color instance if you wnt to set tit this way
   // meshBasicMat.wireframe = true;
   // we need transparent for opacity, or alphaMap
   // meshBasicMat.transparent = true;
   // meshBasicMat.opacity = 0.5;
-  meshBasicMat.alphaMap = doorAlphaTexture;
+  // meshBasicMat.alphaMap = doorAlphaTexture;
   // meshBasicMat.side = THREE.FrontSide;
   // meshBasicMat.side = THREE.BackSide;
-  meshBasicMat.side = THREE.DoubleSide; // avoid, it takes more processing power (longer to render)
+  // meshBasicMat.side = THREE.DoubleSide; // avoid, it takes more processing power (longer to render)
 
-  const sphereMesh = new THREE.Mesh(sphereGeo, meshBasicMat);
+  // ------- MESH NORMAL MATERIAL
+  const meshNormalMaterial = new THREE.MeshNormalMaterial();
 
-  const planeMesh = new THREE.Mesh(planeGeo, meshBasicMat);
+  // these we already saw on basic material
+  // meshNormalMaterial.wireframe = true;
+  meshNormalMaterial.side = THREE.DoubleSide;
+  // meshNormalMaterial.transparent = true;
+  // meshNormalMaterial.opacity = 0.4;
+  // --------------------------------------
+  // these one characteristic for normal material, good for debugging of normls
+  meshNormalMaterial.flatShading = true;
 
-  const torusMesh = new THREE.Mesh(torusGeo, meshBasicMat);
+  // ------- MESH MATCAP MATERIAL (workshop author uses this one for his game/portfoliot (with car) website)
+  const meshMatcapMaterial = new THREE.MeshMatcapMaterial();
+  meshMatcapMaterial.matcap = matcapTexture;
+
+  // ------ MESH DEPTH MATERIAL
+  const meshDepthMaterial = new THREE.MeshDepthMaterial();
+
+  /// ////   MATERIALS THAT REQUIRE LIGHT-------------------------------------------------
+  /// ////   MATERIALS THAT REQUIRE LIGHT-------------------------------------------------
+  // so we need to add few lights
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+  scene.add(ambientLight);
+
+  const pointLight = new THREE.PointLight(0xffffff, 30);
+  pointLight.position.x = 2;
+  pointLight.position.y = 3;
+  pointLight.position.z = 4;
+
+  scene.add(pointLight);
+
+  const pointLightHelper = new THREE.PointLightHelper(
+    pointLight,
+    0.1,
+    "crimson"
+  );
+  scene.add(pointLightHelper);
+
+  // ------ MESH LAMBERT MATERIAL
+  const meshLambertMaterial = new THREE.MeshLambertMaterial(); // most performart material that uses light
+
+  // ------ MESH PHONG MATERIAL
+  const meshPhongMaterial = new THREE.MeshPhongMaterial(); // less performant but better looking than lambert
+  meshPhongMaterial.shininess = 100;
+  meshPhongMaterial.specular = new THREE.Color(0x1188ff);
+
+  // ----- MESH TOON MATERIAL
+  // for small texture to work we do this
+  gradientTexture.minFilter = THREE.NearestFilter;
+  gradientTexture.magFilter = THREE.NearestFilter;
+  gradientTexture.generateMipmaps = false;
+
+  const meshToonMaterial = new THREE.MeshToonMaterial();
+  meshToonMaterial.gradientMap = gradientTexture;
+
+  // --------------------------------------------------------------------
+  // --------------------------------------------------------------------
+  // --------------------------------------------------------------------
+  // --------------------------------------------------------------------
+
+  const sphereMesh = new THREE.Mesh(
+    sphereGeo,
+    // meshBasicMat
+    // meshNormalMaterial
+    // meshMatcapMaterial
+    // meshDepthMaterial
+    // meshLambertMaterial
+    // meshPhongMaterial
+    meshToonMaterial
+  );
+
+  const planeMesh = new THREE.Mesh(
+    planeGeo,
+    // meshBasicMat
+    // meshNormalMaterial
+    // meshMatcapMaterial
+    // meshDepthMaterial
+    // meshLambertMaterial
+    // meshPhongMaterial
+    meshToonMaterial
+  );
+
+  const torusMesh = new THREE.Mesh(
+    torusGeo,
+    // meshBasicMat
+    // meshNormalMaterial
+    // meshMatcapMaterial
+    // meshDepthMaterial
+    // meshLambertMaterial
+    // meshPhongMaterial
+    meshToonMaterial
+  );
 
   sphereMesh.position.x = -1.5;
   torusMesh.position.x = 1.5;

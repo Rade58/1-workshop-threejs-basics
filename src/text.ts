@@ -88,8 +88,8 @@ if (canvas) {
     }
     // --------------------------------------------------------------------------------------
     const textureLoader = new THREE.TextureLoader();
-    const matcapTexture = textureLoader.load("/textures/matcaps/7.png");
-
+    const matcapTexture = textureLoader.load("/textures/matcaps/3.png");
+    const donutMatcapTexture = textureLoader.load("/textures/matcaps/5.png");
     //---------------------------------------------------------------------------------------
 
     const textMaterial = new THREE.MeshMatcapMaterial();
@@ -98,6 +98,34 @@ if (canvas) {
     const textMesh = new THREE.Mesh(textGeometry, textMaterial);
 
     scene.add(textMesh);
+
+    // rendering bunch of toruses
+    const donutGeometry = new THREE.TorusGeometry(0.3, 0.2, 20, 45);
+    const donutMaterial = new THREE.MeshMatcapMaterial({
+      matcap: donutMatcapTexture,
+    });
+    // mesuring the time to create bunch of donuts
+
+    console.time("donuts");
+
+    for (let i = 0; i < 200; i++) {
+      const donutMesh = new THREE.Mesh(donutGeometry, donutMaterial);
+
+      donutMesh.position.x = (Math.random() - 0.5) * 10;
+      donutMesh.position.y = (Math.random() - 0.5) * 10;
+      donutMesh.position.z = (Math.random() - 0.5) * 10;
+
+      donutMesh.rotation.x = Math.random() * Math.PI;
+      donutMesh.rotation.y = Math.random() * Math.PI;
+
+      const scale = Math.random();
+
+      donutMesh.scale.setScalar(scale);
+
+      scene.add(donutMesh);
+    }
+
+    console.timeEnd("donuts");
   });
 
   // --------------------------------------------------------------
@@ -118,7 +146,7 @@ if (canvas) {
   // ---------------------------------------------------
   // ---------------------------------------------------
   // ---------------------------------------------------
-  // PointsMaterial that is used for particles we will cover latter
+
   // --------------------------------------------------------------------
   // --------------------------------------------------------------------
   // --------------------------------------------------------------------
@@ -155,7 +183,7 @@ if (canvas) {
 
   const axHelp = new THREE.AxesHelper(4);
   axHelp.setColors("red", "green", "blue");
-  scene.add(axHelp);
+  // scene.add(axHelp);
 
   const orbit_controls = new OrbitControls(camera, canvas);
   // orbit_controls.enabled = false

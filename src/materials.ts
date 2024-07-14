@@ -3,6 +3,8 @@ import * as THREE from "three";
 import gsap from "gsap";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 import GUI from "lil-gui";
+// for environment map
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 
 /**
  * @description Debug UI - lil-ui
@@ -13,7 +15,7 @@ const gui = new GUI({
   closeFolders: false,
 });
 
-gui.hide();
+// gui.hide();
 
 const debugObject = {
   color: "#90315f",
@@ -118,14 +120,31 @@ if (canvas) {
   /// ////   MATERIALS THAT REQUIRE LIGHT-------------------------------------------------
   // so we need to add few lights
   const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-  scene.add(ambientLight);
+  // scene.add(ambientLight);
 
   const pointLight = new THREE.PointLight(0xffffff, 30);
   pointLight.position.x = 2;
   pointLight.position.y = 3;
   pointLight.position.z = 4;
 
-  scene.add(pointLight);
+  // scene.add(pointLight);
+
+  // -------- loading ENVIRONMENT MAP texture
+  // -----------------------------------------
+  const rgbeLoader = new RGBELoader();
+  rgbeLoader.load("/textures/environmentMap/vignaioli_2k.hdr", (envMap) => {
+    // console.log({ envMap });
+    envMap.mapping = THREE.EquirectangularReflectionMapping;
+
+    scene.background = envMap; // adding map
+    scene.environment = envMap; // to see reflections on `mesh normal material`, `mesh lambert material`, `mesh phong material`
+    // play with metalness of mesh normal material and see reflections
+    // if you lower the roughness and increase metalness
+    // you can get rid of the lighting in this case
+  });
+
+  //-------------------------------------
+  //-------------------------------------
 
   const pointLightHelper = new THREE.PointLightHelper(
     pointLight,
@@ -151,6 +170,23 @@ if (canvas) {
   const meshToonMaterial = new THREE.MeshToonMaterial();
   meshToonMaterial.gradientMap = gradientTexture;
 
+  // ----- MESH STANDARD MATERIAL
+  // IT IS STANDARD BECAUSE PBR HAS BECOME STANDRD IN MANY SOFTWARE, ENGINES, LIBRARIES
+  // SIMILAR OUTPUT REGARDLESS OF TECHNOLOGY YOU ARE USING
+  const meshStandardMaterial = new THREE.MeshStandardMaterial();
+
+  // meshStandardMaterial.metalness = 0.45;
+  meshStandardMaterial.metalness = 0.7; // looks good with environment map
+  // meshStandardMaterial.roughness = 0.65;
+  meshStandardMaterial.roughness = 0.2; // looks good with environment map
+  // play around with debug ui
+  gui.add(meshStandardMaterial, "metalness").min(0).max(1).step(0.0001);
+  gui.add(meshStandardMaterial, "roughness").min(0).max(1).step(0.0001);
+
+  // --------------------------------------------------------------------
+  // --------------------------------------------------------------------
+  // --------------------------------------------------------------------
+
   // --------------------------------------------------------------------
   // --------------------------------------------------------------------
   // --------------------------------------------------------------------
@@ -164,7 +200,8 @@ if (canvas) {
     // meshDepthMaterial
     // meshLambertMaterial
     // meshPhongMaterial
-    meshToonMaterial
+    // meshToonMaterial
+    meshStandardMaterial
   );
 
   const planeMesh = new THREE.Mesh(
@@ -175,7 +212,8 @@ if (canvas) {
     // meshDepthMaterial
     // meshLambertMaterial
     // meshPhongMaterial
-    meshToonMaterial
+    // meshToonMaterial
+    meshStandardMaterial
   );
 
   const torusMesh = new THREE.Mesh(
@@ -186,7 +224,8 @@ if (canvas) {
     // meshDepthMaterial
     // meshLambertMaterial
     // meshPhongMaterial
-    meshToonMaterial
+    // meshToonMaterial
+    meshStandardMaterial
   );
 
   sphereMesh.position.x = -1.5;

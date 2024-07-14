@@ -76,9 +76,15 @@ if (canvas) {
   // -----------------------------------------------------------------------
   // -----------------------------------------------------------------------
   // -----------------------------------------------------------------------
-  const sphereGeo = new THREE.SphereGeometry(0.5, 16, 16);
-  const planeGeo = new THREE.PlaneGeometry(1, 1);
-  const torusGeo = new THREE.TorusGeometry(0.3, 0.2, 16, 32);
+  // made this changes because of heightMap for mesh standard material
+  // (I added more details (segments))
+  // by adding this much of subdivisions, this much of verices, is very bad for performance, just for you to know
+  // const sphereGeo = new THREE.SphereGeometry(0.5, 16, 16);
+  const sphereGeo = new THREE.SphereGeometry(0.5, 64, 64);
+  // const planeGeo = new THREE.PlaneGeometry(1, 1);
+  const planeGeo = new THREE.PlaneGeometry(1, 1, 100, 100);
+  // const torusGeo = new THREE.TorusGeometry(0.3, 0.2, 16, 32);
+  const torusGeo = new THREE.TorusGeometry(0.3, 0.2, 64, 128);
 
   // ------- MESH BASIC MATERIAL
   const meshBasicMat = new THREE.MeshBasicMaterial({
@@ -176,13 +182,183 @@ if (canvas) {
   const meshStandardMaterial = new THREE.MeshStandardMaterial();
 
   // meshStandardMaterial.metalness = 0.45;
-  meshStandardMaterial.metalness = 0.7; // looks good with environment map
+  // meshStandardMaterial.metalness = 0.7; // looks good with environment map
+  meshStandardMaterial.metalness = 1; // looks good after adding metalness map texture for mesh standard material (value will work as a multiplier)
   // meshStandardMaterial.roughness = 0.65;
-  meshStandardMaterial.roughness = 0.2; // looks good with environment map
-  // play around with debug ui
-  gui.add(meshStandardMaterial, "metalness").min(0).max(1).step(0.0001);
-  gui.add(meshStandardMaterial, "roughness").min(0).max(1).step(0.0001);
+  // meshStandardMaterial.roughness = 0.2; // looks good with environment map
+  meshStandardMaterial.roughness = 1; // looks good with roughness map texture for mesh standard material (value will work as  multiplier)
+  //
+  meshStandardMaterial.map = doorColorTexture;
+  meshStandardMaterial.aoMap = doorAmbientOcclusionTexture;
+  meshStandardMaterial.aoMapIntensity = 1;
+  meshStandardMaterial.displacementMap = doorHeightTexture;
+  // for height texture to work
+  meshStandardMaterial.displacementScale = 0.1;
+  //
+  meshStandardMaterial.metalnessMap = doorMetalnessTexture;
+  meshStandardMaterial.roughnessMap = doorRoughnessTexture;
+  //
+  meshStandardMaterial.normalMap = doorNormalTexture;
+  meshStandardMaterial.normalScale.set(0.5, 0.5);
+  //
+  meshStandardMaterial.transparent = true;
+  meshStandardMaterial.alphaMap = doorAlphaTexture; //because of transparency only door will be visible
+  //                                                  and the rest of mesh won't be visible
 
+  /*  gui
+    .add(meshStandardMaterial, "metalness")
+    .min(0)
+    .max(1)
+    .step(0.0001)
+    .name("stndard mat metalnss");
+  gui
+    .add(meshStandardMaterial, "roughness")
+    .min(0)
+    .max(1)
+    .step(0.0001)
+    .name("standard mat roughness"); */
+
+  // ------------------------------------------------------------------------------------------------------------------------------
+  // ------ MESH PHISICAL MATERIAL (MESH NORMAL WITH MORE PHISICAL CHARACTERISTICS LIKE clearcoat, sheen, iridescence, trnsmission)
+  // worst material for performance
+  const meshPhisMaterial = new THREE.MeshPhysicalMaterial();
+
+  // meshPhisMaterial.metalness = 1;
+  meshPhisMaterial.metalness = 0;
+  // meshPhisMaterial.roughness = 1;
+  meshPhisMaterial.roughness = 0;
+  /* meshPhisMaterial.map = doorColorTexture;
+  meshPhisMaterial.aoMap = doorAmbientOcclusionTexture;
+  meshPhisMaterial.aoMapIntensity = 1;
+  meshPhisMaterial.displacementMap = doorHeightTexture;
+  meshPhisMaterial.displacementScale = 0.1;
+  meshPhisMaterial.metalnessMap = doorMetalnessTexture;
+  meshPhisMaterial.roughnessMap = doorRoughnessTexture;
+  meshPhisMaterial.normalMap = doorNormalTexture;
+  meshPhisMaterial.normalScale.set(0.5, 0.5);
+  meshPhisMaterial.transparent = true;
+  meshPhisMaterial.alphaMap = doorAlphaTexture; */
+
+  gui
+    .add(meshPhisMaterial, "metalness")
+    .min(0)
+    .max(1)
+    .step(0.0001)
+    .name("phisical mat metlness");
+  gui
+    .add(meshPhisMaterial, "roughness")
+    .min(0)
+    .max(1)
+    .step(0.0001)
+    .name("phisical mat roughness");
+
+  //
+  // additional stuff only characteristical for MeshPhisicalMaterial
+  // but all of this is costly forperformance
+  /* meshPhisMaterial.clearcoat = 1;
+  meshPhisMaterial.clearcoatRoughness = 0;
+
+  gui
+    .add(meshPhisMaterial, "clearcoat")
+    .min(0)
+    .max(1)
+    .step(0.0001)
+    .name("phisical mat clercot");
+  gui
+    .add(meshPhisMaterial, "clearcoatRoughness")
+    .min(0)
+    .max(1)
+    .step(0.0001)
+    .name("phisical mat clearcoatRoughness"); */
+
+  // sheen is for material that is fluffy like fabric, for example fabric on chair or couch or similar
+  // material will look less plastic
+  /* meshPhisMaterial.sheen = 1;
+  meshPhisMaterial.sheenRoughness = 0.25;
+  meshPhisMaterial.sheenColor.set(1, 1, 1);
+
+  gui
+    .add(meshPhisMaterial, "sheen")
+    .min(0)
+    .max(1)
+    .step(0.0001)
+    .name("phisical mat sheen");
+  gui
+    .add(meshPhisMaterial, "sheenRoughness")
+    .min(0)
+    .max(1)
+    .step(0.0001)
+    .name("phisical mat sheenRoughness");
+  gui.addColor(meshPhisMaterial, "sheenColor"); */
+
+  // for color efect of fuel or soap bubble, lazer discs, (you know, that "ranbow" effect)
+
+  /* meshPhisMaterial.iridescence = 1;
+  meshPhisMaterial.iridescenceIOR = 1;
+  meshPhisMaterial.iridescenceThicknessRange = [100, 8800];
+
+  gui
+    .add(meshPhisMaterial, "iridescence")
+    .min(0)
+    .max(1)
+    .step(0.0001)
+    .name("phisical mat iridescence");
+  gui
+    .add(meshPhisMaterial, "iridescenceIOR")
+    .min(0)
+    .max(2.333)
+    .step(0.0001)
+    .name("phisical mat iridescenceIOR");
+  gui
+    .add(meshPhisMaterial.iridescenceThicknessRange, "0")
+    .min(1)
+    .max(1000)
+    .step(1)
+    .name("phisical mat iridescenceTicknessRange 0");
+  gui
+    .add(meshPhisMaterial.iridescenceThicknessRange, "1")
+    .min(1)
+    .max(1000)
+    .step(1)
+    .name("phisical mat iridescenceTicknessRange 1"); */
+
+  // trnasmission      enables light to go through material (when you want to see what is behind mesh)
+  // it's more than just transparency with opacity, because things behind mesh get deformed
+
+  // try using these one only with defined rougness and metalnss of 0 (zero) (other things we set above you can comment)
+  meshPhisMaterial.transmission = 1;
+  meshPhisMaterial.ior = 1.5; // to simulate material --  diamod it is 2.417, water is 1.333,  air is   1.000293
+  //                              check more here        https://en.wikipedia.org/wiki/List_of_refractive_indices
+  meshPhisMaterial.thickness = 0.5;
+
+  gui
+    .add(meshPhisMaterial, "transmission")
+    .min(0)
+    .max(1)
+    .step(0.0001)
+    .name("phisical mat trnasmission");
+  gui
+    .add(meshPhisMaterial, "ior")
+    .min(1)
+    .max(10)
+    .step(0.0001)
+    .name("phisical mat ior");
+  gui
+    .add(meshPhisMaterial, "thickness")
+    .min(0)
+    .max(1)
+    .step(0.0001)
+    .name("phisical mat thickness");
+
+  // ---------------------------------------------------
+  // ---------------------------------------------------
+  // ---------------------------------------------------
+  // ---------------------------------------------------
+  // ---------------------------------------------------
+  // ---------------------------------------------------
+  // ---------------------------------------------------
+  // ---------------------------------------------------
+  // PointsMaterial that is used for particles we will cover latter
   // --------------------------------------------------------------------
   // --------------------------------------------------------------------
   // --------------------------------------------------------------------
@@ -201,7 +377,8 @@ if (canvas) {
     // meshLambertMaterial
     // meshPhongMaterial
     // meshToonMaterial
-    meshStandardMaterial
+    // meshStandardMaterial
+    meshPhisMaterial
   );
 
   const planeMesh = new THREE.Mesh(
@@ -213,7 +390,8 @@ if (canvas) {
     // meshLambertMaterial
     // meshPhongMaterial
     // meshToonMaterial
-    meshStandardMaterial
+    // meshStandardMaterial
+    meshPhisMaterial
   );
 
   const torusMesh = new THREE.Mesh(
@@ -225,7 +403,8 @@ if (canvas) {
     // meshLambertMaterial
     // meshPhongMaterial
     // meshToonMaterial
-    meshStandardMaterial
+    // meshStandardMaterial
+    meshPhisMaterial
   );
 
   sphereMesh.position.x = -1.5;
@@ -309,7 +488,7 @@ if (canvas) {
 
   const axHelp = new THREE.AxesHelper(4);
   axHelp.setColors("red", "green", "blue");
-  scene.add(axHelp);
+  // scene.add(axHelp);
 
   const orbit_controls = new OrbitControls(camera, canvas);
   // orbit_controls.enabled = false

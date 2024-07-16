@@ -1,3 +1,3 @@
-# Three.js Workshop exercise one
+# Three.js Workshop exercise one - Basics
 
 Basics
